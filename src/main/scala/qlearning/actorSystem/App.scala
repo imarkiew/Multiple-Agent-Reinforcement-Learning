@@ -35,20 +35,20 @@ object App extends JFXApp {
 
   class UIActor extends Actor {
     // Request ticker to send TickCount
+    var tempCounter = 0
     player ! Learn
-    /**
-      * UIActor message processing
-      * @return
-      */
+
     def receive = {
-      /**
-        * The important part here is the 'Platform.runLater' which ensures
-        * we are updating the UI from the UI Thread !
-        */
+
       case Path(calculatedPath) => {
         path = calculatedPath
-        println("Kurwa mac to jest hit")
         howManyItersToLearn = path.length
+        tempCounter = howManyItersToLearn - 1
+        while(tempCounter > 0) {
+          tempCounter = tempCounter - 1
+          buttonSim.fire()
+          Thread.sleep(1000)
+        }
       }
 
       case Resp(msg) => {
@@ -56,7 +56,7 @@ object App extends JFXApp {
         player ! Play
       }
 
-      case _ => println("I received ")
+      case _ => println("I received something that I cannot interpret")
     }
   }
 
