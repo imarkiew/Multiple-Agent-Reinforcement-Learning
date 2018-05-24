@@ -1,19 +1,18 @@
-package qlearning.FxView
+import akka.actor.{Actor, ActorSystem, Props}
+import qlearning.actorSystem.SagPlayer
 
-
-import qlearning.sag.{SagBoard, SagPlayer}
-import scalafx.Includes._
-import scalafx.application.JFXApp
+import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.DoubleProperty.sfxDoubleProperty2jfx
-import scalafx.event.ActionEvent
 import scalafx.scene.canvas.Canvas
 import scalafx.scene.control.Button
 import scalafx.scene.paint.Stop.sfxStop2jfx
 import scalafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
-import scalafx.scene.shape.{Rectangle}
+import scalafx.scene.shape.Rectangle
 import scalafx.scene.{Group, Scene}
-import qlearning.FxView.Utils._
+import qlearning.actorSystem.Utils._
+
+import scala.collection.mutable
 
 object App extends JFXApp {
 
@@ -27,39 +26,58 @@ object App extends JFXApp {
   }
 
 
-  val button = new Button("Learn it")
-  button.layoutX = 20
-  button layoutY = 20
-  button.onAction = (event: ActionEvent) => {
-    val gamePlayer = new SagPlayer()
-    println("Make Widzew Great Again")
-    gamePlayer.learnHowToPlay()
-    var state = SagBoard()
-    var newstate = state
-    while (!state.isWon() && state.hasTransitions) {
-      println("--------")
-      println(state.toString)
-      state = state.makeTransition(gamePlayer.table.getBestMove(state)._1)
-      positions += state.playerPosition
+  implicit val system = ActorSystem("sample-system")
+
+  // Create Main actor
+  val player = system.actorOf(Props(new SagPlayer))
+  var path = mutable.ListBuffer[Int]()
+
+
+  class UIActor extends Actor {
+    // Request ticker to send TickCount
+    player ! Learn
+    /**
+      * UIActor message processing
+      * @return
+      */
+    def receive = {
+      /**
+        * The important part here is the 'Platform.runLater' which ensures
+        * we are updating the UI from the UI Thread !
+        */
+      case Path(calculatedPath) => {
+        path = calculatedPath
+        println("Kurwa mac to jest hit")
+        howManyItersToLearn = path.length
+      }
+
+      case Resp(msg) => {
+        println(msg)
+        player ! Play
+      }
+
+      case _ => println("I received ")
     }
-    howManyItersToLearn = positions.length
   }
+
+  val uiactor = system.actorOf(Props(new UIActor))
+
 
   val buttonSim = new Button("Simulate")
   buttonSim.layoutX = 20
   buttonSim.layoutY = 50
   buttonSim.onAction = (_) => {
-    print("Simulation step: " + (howManyItersToLearn - positions.length) + "\n")
-    drawSomeone(Color.Blue, positions.head%4, positions.head/4)
-    positions = positions.drop(1)
-    if(positions.length == 0)
+    print("Simulation step: " + (howManyItersToLearn - path.length) + "\n")
+    drawSomeone(Color.Blue, path.head%4, path.head/4)
+    path = path.drop(1)
+    if(path.length == 0)
       System.exit(0)
-    drawSomeone(Color.White, positions.head%4, positions.head/4)
+    drawSomeone(Color.White, path.head%4, path.head/4)
 
   }
 
   val rootPane = new Group
-  rootPane.children = List(rect, canvas, button, buttonSim)
+  rootPane.children = List(rect, canvas, buttonSim)
   stage = new PrimaryStage {
     title = "Systemy Agentowe - Symulacja"
     scene = new Scene(SCENE_HEIGHT, SCENE_WIDTH) {
