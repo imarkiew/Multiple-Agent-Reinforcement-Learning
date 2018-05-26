@@ -4,10 +4,10 @@ import qlearning.common._
 
 import scala.util.Random
 
-case class SagBoard(state: String = "c.T....T..T.T.....T.TT..P", playerToMove: Char = 'c', playerPosition: Int = 0) extends State[Int] {
+case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: Char = 'c', playerPosition: Int = 0) extends State[Int] {
 
   val PRIZE_POSITION = 24
-  val TRAP_POSITION = Seq(2,7,10,12,18,20,21)
+  val TRAP_POSITION = Seq(2,7,10,18,20,21)
 
   def hasTransitions: Boolean = return !isWon()
 

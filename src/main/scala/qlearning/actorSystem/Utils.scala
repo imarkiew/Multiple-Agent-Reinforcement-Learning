@@ -11,7 +11,8 @@ object Utils {
   val UNIT = 100
   val AGENT_RADIUS = 40
   var howManyItersToLearn = 0
-  val state5 = "..T....T..T.T.....T.TT..P"
+  val state5 = "..T....T..T.......T.TT..P"
+  val PRIZE_POSITION_5 = 24
 
   case class Learn()
   case class Position(pos: Int, who: Int)

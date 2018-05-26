@@ -30,19 +30,24 @@ object App extends JFXApp {
   implicit val system = ActorSystem("sample-system")
 
   // Create Main actor
-  val playerFirst = system.actorOf(Props(new SagPlayer(0)))
-  val playerSecond = system.actorOf(Props(new SagPlayer(4)))
+  var playerFirstPos = 0
+  var playerSecPos = 4
+  var playerThirdPos = 12
+
+  val playerFirst = system.actorOf(Props(new SagPlayer(playerFirstPos)))
+  val playerSecond = system.actorOf(Props(new SagPlayer(playerSecPos)))
+  val playerThird = system.actorOf(Props(new SagPlayer(playerThirdPos)))
   var path = mutable.ListBuffer[Int]()
 
 
   class UIActor extends Actor {
     // Request ticker to send TickCount
     var tempCounter = 0
-    var playerFirstPos = 0
-    var playerSecPos = 4
+
 
     playerFirst ! Learn
     playerSecond ! Learn
+    playerThird ! Learn
 
 
     def receive = {
@@ -52,19 +57,27 @@ object App extends JFXApp {
       }
 
       case Moves(oldPos, moves) => {
-        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => (e ._1 == 24 || (e._1 != playerSecPos && e._1 != playerFirstPos)))
+        if(oldPos == PRIZE_POSITION_5)
+          system.stop(sender())
+        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => (e ._1 == 24 || (e._1 != playerSecPos && e._1 != playerFirstPos && e._1 != playerThirdPos)))
         if(bestActions.length != 0) {
           println("Simulation step")
           val moveToDo = bestActions(Random.nextInt(bestActions.length))
           if(playerFirstPos == oldPos)
             playerFirstPos = moveToDo._1
-          else
+          else if(playerSecPos == oldPos)
             playerSecPos = moveToDo._1
+          else
+          playerThirdPos = moveToDo._1
           Platform.runLater(
             drawTwoCircles(oldPos%5, oldPos/5, moveToDo._1 % 5, moveToDo._1/5)
           )
           system.scheduler.scheduleOnce(1.second, sender, DoThisMove(moveToDo))
           //sender ! DoThisMove(moveToDo)
+        }
+        else {
+          println("\n\n\n" + "Error no possibe move!!!" + "\n\n\n")
+          system.scheduler.scheduleOnce(1.second, sender, MakeMove)
         }
       }
 
@@ -87,6 +100,12 @@ object App extends JFXApp {
 
     }
   }
+  stage.setOnCloseRequest(e => {
+    system.terminate()
+    Platform.exit()
+  })
+
+
 
   canvas.translateX = (SCENE_WIDTH - CANVAS_WIDTH) / 2
   canvas.translateY = (SCENE_HEIGHT - CANVAS_HEIGHT) / 2
@@ -96,10 +115,10 @@ object App extends JFXApp {
   drawLines(Color.Black)
   drawSomeone(Color.White, 0,0)
   drawSomeone(Color.White,4,0)
+  drawSomeone(Color.White,2,2)
   drawSomeone(Color.Red, 2,0)
   drawSomeone(Color.Red, 2,1)
   drawSomeone(Color.Red, 0,2)
-  drawSomeone(Color.Red, 2,2)
   drawSomeone(Color.Red, 3,3)
   drawSomeone(Color.Red, 0,4)
   drawSomeone(Color.Red, 1,4)
@@ -116,6 +135,8 @@ object App extends JFXApp {
       gc.strokeLine(0, i * UNIT, canvas.width.get, i * UNIT)
     }
   }
+
+
 
   def drawSomeone(color: Color, x: Int, y: Int): Unit = {
     gc.fill = color
