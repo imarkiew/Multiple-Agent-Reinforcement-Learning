@@ -4,10 +4,10 @@ import qlearning.common._
 
 import scala.util.Random
 
-case class SagBoard(state: String = "c.T..T......T..P", playerToMove: Char = 'c', playerPosition: Int = 0) extends State[Int] {
+case class SagBoard(state: String = "c.T....T..T.T.....T.TT..P", playerToMove: Char = 'c', playerPosition: Int = 0) extends State[Int] {
 
-  val PRIZE_POSITION = 15
-  val TRAP_POSITION = Seq(2,5,12)
+  val PRIZE_POSITION = 24
+  val TRAP_POSITION = Seq(2,7,10,12,18,20,21)
 
   def hasTransitions: Boolean = return !isWon()
 
@@ -21,7 +21,7 @@ case class SagBoard(state: String = "c.T..T......T..P", playerToMove: Char = 'c'
 
   def getLegalTransitions: Seq[Int] = {
     if (isWon()) Seq()
-    else LegalTranstitions.transitions4(playerPosition)
+    else LegalTranstitions.transitions5(playerPosition)
   }
 
   def rewardForLastMove: Float = {
@@ -36,5 +36,5 @@ case class SagBoard(state: String = "c.T..T......T..P", playerToMove: Char = 'c'
     bestActions(rnd.nextInt(bestActions.length))
   }
 
-  override def toString: String = state.substring(0, 4) + "\n" + state.substring(4, 8) + "\n" + state.substring(8,12) + "\n" + state.substring(12)
+  override def toString: String = state.substring(0, 5) + "\n" + state.substring(5, 10) + "\n" + state.substring(10,15) + "\n" + state.substring(15,20) + '\n' + state.substring(20)
 }

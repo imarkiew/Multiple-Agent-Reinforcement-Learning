@@ -43,7 +43,7 @@ class SagPlayer extends Actor {
 
   def learnAndPlay(): Unit = {
     print("Learning...")
-    learner.learn(table, 200)
+    learner.learn(table, 2000)
   }
 
 }

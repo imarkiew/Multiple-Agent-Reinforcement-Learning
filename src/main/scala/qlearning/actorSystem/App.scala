@@ -68,11 +68,11 @@ object App extends JFXApp {
   buttonSim.layoutY = 50
   buttonSim.onAction = (_) => {
     print("Simulation step: " + (howManyItersToLearn - path.length) + "\n")
-    drawSomeone(Color.Blue, path.head%4, path.head/4)
+    drawSomeone(Color.Blue, path.head%5, path.head/5)
     path = path.drop(1)
     if(path.length == 0)
       System.exit(0)
-    drawSomeone(Color.White, path.head%4, path.head/4)
+    drawSomeone(Color.White, path.head%5, path.head/5)
 
   }
 
@@ -94,9 +94,13 @@ object App extends JFXApp {
   drawLines(Color.Black)
   drawSomeone(Color.White, 0,0)
   drawSomeone(Color.Red, 2,0)
-  drawSomeone(Color.Red, 1,1)
-  drawSomeone(Color.Red, 0,3)
-  drawSomeone(Color.Yellow, 3,3)
+  drawSomeone(Color.Red, 2,1)
+  drawSomeone(Color.Red, 0,2)
+  drawSomeone(Color.Red, 2,2)
+  drawSomeone(Color.Red, 3,3)
+  drawSomeone(Color.Red, 0,4)
+  drawSomeone(Color.Red, 1,4)
+  drawSomeone(Color.Yellow, 4,4)
 
   /** Update the shape using current `start` and `end` points. */
   def drawLines(color: Color) {
