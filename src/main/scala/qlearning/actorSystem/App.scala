@@ -1,5 +1,5 @@
 import akka.actor.{Actor, ActorSystem, Props}
-import qlearning.actorSystem.{SagBoard, SagPlayer}
+import qlearning.actorSystem.{SagBoard, SagPlayerActor}
 
 import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
@@ -34,9 +34,9 @@ object App extends JFXApp {
   var playerSecPos = 4
   var playerThirdPos = 12
 
-  val playerFirst = system.actorOf(Props(new SagPlayer(playerFirstPos)))
-  val playerSecond = system.actorOf(Props(new SagPlayer(playerSecPos)))
-  val playerThird = system.actorOf(Props(new SagPlayer(playerThirdPos)))
+  val playerFirst = system.actorOf(Props(new SagPlayerActor(playerFirstPos)))
+  val playerSecond = system.actorOf(Props(new SagPlayerActor(playerSecPos)))
+  val playerThird = system.actorOf(Props(new SagPlayerActor(playerThirdPos)))
   var path = mutable.ListBuffer[Int]()
 
 
@@ -113,18 +113,24 @@ object App extends JFXApp {
   reset(Color.Blue)
 
   drawLines(Color.Black)
-  drawSomeone(Color.White, 0,0)
-  drawSomeone(Color.White,4,0)
-  drawSomeone(Color.White,2,2)
-  drawSomeone(Color.Red, 2,0)
-  drawSomeone(Color.Red, 2,1)
-  drawSomeone(Color.Red, 0,2)
-  drawSomeone(Color.Red, 3,3)
-  drawSomeone(Color.Red, 0,4)
-  drawSomeone(Color.Red, 1,4)
+  drawElements(CircleType("Agent"))
+  drawElements(CircleType("Trap"))
+  drawElements(CircleType("Prize"))
+
   drawSomeone(Color.Yellow, 4,4)
 
   /** Update the shape using current `start` and `end` points. */
+  def drawElements(circleType: CircleType) = circleType match{
+    case CircleType("Trap") => TRAP_POSITION.foreach(elem => {
+      drawSomeone(Color.Red, elem%5, elem/5)
+    })
+    case CircleType("Agent") => AGENT_POSITION.foreach(elem => {
+      drawSomeone(Color.White, elem%5, elem/5)
+    })
+    case CircleType("Prize") => drawSomeone(Color.Yellow, PRIZE_POSITION_5%5, PRIZE_POSITION_5/5)
+    case _ => println("I dont recognize this type of circle")
+  }
+
   def drawLines(color: Color) {
     for(i <- 0 to CANVAS_HEIGHT / UNIT) {
       gc.fill = color
@@ -135,8 +141,6 @@ object App extends JFXApp {
       gc.strokeLine(0, i * UNIT, canvas.width.get, i * UNIT)
     }
   }
-
-
 
   def drawSomeone(color: Color, x: Int, y: Int): Unit = {
     gc.fill = color

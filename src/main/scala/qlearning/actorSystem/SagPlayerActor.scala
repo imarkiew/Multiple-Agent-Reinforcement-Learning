@@ -7,15 +7,26 @@ import qlearning.common._
 
 
 
-class SagPlayer(initialState: Int) extends Actor {
+class SagPlayerActor(initialState: Int) extends Actor {
 
-  var initialStateString = state5.substring(0, initialState) + 'c' + state5.substring(initialState+1)
-
+  private val initialStateString = generateStringState
   val table = new QTable(SagBoard(initialStateString,'c',initialState), None, epsilon = 0.05)
   val learner = new QLearner[Int]()
   var playerPosition = initialState
   var state = SagBoard(initialStateString, 'c', playerPosition)
 
+
+  def generateStringState(): String = {
+    var vector = scala.collection.mutable.ArrayBuffer.empty[Char]
+    for(i <- 0 to 25)
+      vector = vector :+ '.'
+    TRAP_POSITION.foreach(ind => {
+      vector(ind) = 'T'
+    })
+    vector(PRIZE_POSITION_5) = 'P'
+    vector(playerPosition) = 'c'
+    vector.mkString("")
+  }
 
   def receive = {
 
