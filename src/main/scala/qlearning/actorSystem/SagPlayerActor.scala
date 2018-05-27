@@ -61,7 +61,7 @@ class SagPlayerActor(initialState: Int) extends Actor {
 
   def learnAndPlay(): Unit = {
     print("Learning...")
-    learner.learn(table, initialState, 2000)
+    learner.learn(table, initialState, 500)
   }
 
 }

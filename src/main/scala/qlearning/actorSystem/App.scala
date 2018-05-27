@@ -1,4 +1,5 @@
-import akka.actor.{Actor, ActorSystem, Props}
+import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.routing.RoundRobinPool
 import qlearning.actorSystem.{SagBoard, SagPlayerActor}
 
 import scalafx.application.{JFXApp, Platform}
@@ -11,6 +12,7 @@ import scalafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.{Group, Scene}
 import qlearning.actorSystem.Utils._
+
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.collection.mutable
 import scala.util.Random
@@ -37,7 +39,10 @@ object App extends JFXApp {
   val playerFirst = system.actorOf(Props(new SagPlayerActor(playerFirstPos)))
   val playerSecond = system.actorOf(Props(new SagPlayerActor(playerSecPos)))
   val playerThird = system.actorOf(Props(new SagPlayerActor(playerThirdPos)))
-  var path = mutable.ListBuffer[Int]()
+
+
+
+
 
 
   class UIActor extends Actor {
@@ -72,12 +77,12 @@ object App extends JFXApp {
           Platform.runLater(
             drawTwoCircles(oldPos%5, oldPos/5, moveToDo._1 % 5, moveToDo._1/5)
           )
-          system.scheduler.scheduleOnce(1.second, sender, DoThisMove(moveToDo))
+          system.scheduler.scheduleOnce(2.second, sender, DoThisMove(moveToDo))
           //sender ! DoThisMove(moveToDo)
         }
         else {
           println("\n\n\n" + "Error no possibe move!!!" + "\n\n\n")
-          system.scheduler.scheduleOnce(1.second, sender, MakeMove)
+          system.scheduler.scheduleOnce(2.second, sender, MakeMove)
         }
       }
 
@@ -148,7 +153,10 @@ object App extends JFXApp {
   }
 
   def drawTwoCircles(i1: Int, i2: Int, i3: Int, i4: Int): Unit = {
-    gc.fill = Color.Blue
+    if(TRAP_POSITION.contains(i1%5 + i2*5))
+      gc.fill = Color.Red
+    else
+      gc.fill = Color.Blue
     gc.fillRoundRect(i1*UNIT + (UNIT/2 - AGENT_RADIUS/2), i2*UNIT + (UNIT/2 - AGENT_RADIUS/2), AGENT_RADIUS, AGENT_RADIUS, 5, 5)
     gc.fill = Color.White
     gc.fillRoundRect(i3*UNIT + (UNIT/2 - AGENT_RADIUS/2), i4*UNIT + (UNIT/2 - AGENT_RADIUS/2), AGENT_RADIUS, AGENT_RADIUS, 5, 5)

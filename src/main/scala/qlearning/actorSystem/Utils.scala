@@ -14,7 +14,7 @@ object Utils {
   val state5 = "..T....T..T.......T.TT..P"
   val PRIZE_POSITION_5 = 24
   val PRIZE_POSITION = 24
-  val TRAP_POSITION = Seq(2,7,10,18,20,21,22)
+  val TRAP_POSITION = Seq(2,7,10,19,20,21,22)
   val AGENT_POSITION = Seq(0,4,12)
 
   case class Learn()
