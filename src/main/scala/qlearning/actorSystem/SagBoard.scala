@@ -7,6 +7,7 @@ import scala.util.Random
 case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: Char = 'c', playerPosition: Int = 0) extends State[Int] {
 
 
+  val transtitions = LegalTranstitions.generateTransitions(boardSize)
   def hasTransitions: Boolean = return !isWon()
 
   def makeTransition(position: Int): SagBoard = {
@@ -19,7 +20,7 @@ case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: C
 
   def getLegalTransitions: Seq[Int] = {
     if (isWon()) Seq()
-    else LegalTranstitions.transitions5(playerPosition)
+    else transtitions(playerPosition)
   }
 
   def rewardForLastMove: Float = {
@@ -34,5 +35,5 @@ case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: C
     bestActions(rnd.nextInt(bestActions.length))
   }
 
-  override def toString: String = state.substring(0, 5) + "\n" + state.substring(5, 10) + "\n" + state.substring(10,15) + "\n" + state.substring(15,20) + '\n' + state.substring(20)
+  //  override def toString: String = state.substring(0, 5) + "\n" + state.substring(5, 10) + "\n" + state.substring(10,15) + "\n" + state.substring(15,20) + '\n' + state.substring(20)
 }

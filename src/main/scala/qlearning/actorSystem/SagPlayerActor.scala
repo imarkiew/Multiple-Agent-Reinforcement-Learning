@@ -18,12 +18,12 @@ class SagPlayerActor(initialState: Int) extends Actor {
 
   def generateStringState(): String = {
     var vector = scala.collection.mutable.ArrayBuffer.empty[Char]
-    for(i <- 0 to 25)
+    for(i <- 0 to boardSize*boardSize)
       vector = vector :+ '.'
     TRAP_POSITION.foreach(ind => {
       vector(ind) = 'T'
     })
-    vector(PRIZE_POSITION_5) = 'P'
+    vector(PRIZE_POSITION) = 'P'
     vector(playerPosition) = 'c'
     vector.mkString("")
   }
@@ -63,5 +63,4 @@ class SagPlayerActor(initialState: Int) extends Actor {
     print("Learning...")
     learner.learn(table, initialState, 500)
   }
-
 }

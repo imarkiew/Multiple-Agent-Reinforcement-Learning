@@ -1,7 +1,6 @@
-import akka.actor.{Actor, ActorRef, ActorSystem, Props}
+import akka.actor.{Actor, ActorSystem, Props}
 import akka.routing.RoundRobinPool
-import qlearning.actorSystem.{SagBoard, SagPlayerActor}
-
+import qlearning.actorSystem.SagPlayerActor
 import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.DoubleProperty.sfxDoubleProperty2jfx
@@ -12,9 +11,7 @@ import scalafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.{Group, Scene}
 import qlearning.actorSystem.Utils._
-
 import scala.concurrent.ExecutionContext.Implicits.global
-import scala.collection.mutable
 import scala.util.Random
 
 object App extends JFXApp {
@@ -34,15 +31,12 @@ object App extends JFXApp {
   // Create Main actor
   var playerFirstPos = 0
   var playerSecPos = 4
-  var playerThirdPos = 12
+  var playerThirdPos = 17
+
 
   val playerFirst = system.actorOf(Props(new SagPlayerActor(playerFirstPos)))
   val playerSecond = system.actorOf(Props(new SagPlayerActor(playerSecPos)))
   val playerThird = system.actorOf(Props(new SagPlayerActor(playerThirdPos)))
-
-
-
-
 
 
   class UIActor extends Actor {
@@ -62,9 +56,9 @@ object App extends JFXApp {
       }
 
       case Moves(oldPos, moves) => {
-        if(oldPos == PRIZE_POSITION_5)
+        if(oldPos == PRIZE_POSITION)
           system.stop(sender())
-        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => (e ._1 == 24 || (e._1 != playerSecPos && e._1 != playerFirstPos && e._1 != playerThirdPos)))
+        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => (e ._1 == boardSize*boardSize - 1 || (e._1 != playerSecPos && e._1 != playerFirstPos && e._1 != playerThirdPos)))
         if(bestActions.length != 0) {
           println("Simulation step")
           val moveToDo = bestActions(Random.nextInt(bestActions.length))
@@ -73,9 +67,9 @@ object App extends JFXApp {
           else if(playerSecPos == oldPos)
             playerSecPos = moveToDo._1
           else
-          playerThirdPos = moveToDo._1
+            playerThirdPos = moveToDo._1
           Platform.runLater(
-            drawTwoCircles(oldPos%5, oldPos/5, moveToDo._1 % 5, moveToDo._1/5)
+            drawTwoCircles(oldPos%boardSize, oldPos/boardSize, moveToDo._1 % boardSize, moveToDo._1/boardSize)
           )
           system.scheduler.scheduleOnce(2.second, sender, DoThisMove(moveToDo))
           //sender ! DoThisMove(moveToDo)
@@ -91,10 +85,6 @@ object App extends JFXApp {
   }
 
   val uiactor = system.actorOf(Props(new UIActor))
-
-
-
-
 
   val rootPane = new Group
   rootPane.children = List(rect, canvas)
@@ -122,17 +112,17 @@ object App extends JFXApp {
   drawElements(CircleType("Trap"))
   drawElements(CircleType("Prize"))
 
-  drawSomeone(Color.Yellow, 4,4)
+  //drawSomeone(Color.Yellow, 4,4)
 
   /** Update the shape using current `start` and `end` points. */
   def drawElements(circleType: CircleType) = circleType match{
     case CircleType("Trap") => TRAP_POSITION.foreach(elem => {
-      drawSomeone(Color.Red, elem%5, elem/5)
+      drawSomeone(Color.Red, elem%boardSize, elem/boardSize)
     })
     case CircleType("Agent") => AGENT_POSITION.foreach(elem => {
-      drawSomeone(Color.White, elem%5, elem/5)
+      drawSomeone(Color.White, elem%boardSize, elem/boardSize)
     })
-    case CircleType("Prize") => drawSomeone(Color.Yellow, PRIZE_POSITION_5%5, PRIZE_POSITION_5/5)
+    case CircleType("Prize") => drawSomeone(Color.Yellow, PRIZE_POSITION%boardSize, PRIZE_POSITION/boardSize)
     case _ => println("I dont recognize this type of circle")
   }
 
@@ -153,7 +143,7 @@ object App extends JFXApp {
   }
 
   def drawTwoCircles(i1: Int, i2: Int, i3: Int, i4: Int): Unit = {
-    if(TRAP_POSITION.contains(i1%5 + i2*5))
+    if(TRAP_POSITION.contains(i1%boardSize + i2*boardSize))
       gc.fill = Color.Red
     else
       gc.fill = Color.Blue
