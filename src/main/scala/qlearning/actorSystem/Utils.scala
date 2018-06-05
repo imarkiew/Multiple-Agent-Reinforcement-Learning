@@ -9,11 +9,11 @@ object Utils {
   val CANVAS_HEIGHT = 500
   val CANVAS_WIDTH = 500
   val AGENT_RADIUS = 40
-  var howManyItersToLearn = 0
-  val boardSize = 6
-  val PRIZE_POSITION = 35
-  val TRAP_POSITION = Seq(2, 5, 6, 15, 30)
-  val AGENT_POSITION = Seq(0, 4, 17)
+  var HOW_MANY_ITERS_TO_LEARN = 5000
+  val boardSize = 5
+  val PRIZE_POSITION = 24
+  val TRAP_POSITION = Seq(2, 5, 9, 12, 15, 23)
+  val AGENT_POSITION = Seq(1, 4, 16)
   val UNIT = CANVAS_HEIGHT / boardSize
 
   case class Learn()

@@ -1,16 +1,22 @@
+import java.security.KeyStore.TrustedCertificateEntry
+
 import akka.actor.{Actor, ActorSystem, Props}
-import akka.routing.RoundRobinPool
+import akka.routing._
 import qlearning.actorSystem.SagPlayerActor
 import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.DoubleProperty.sfxDoubleProperty2jfx
 import scalafx.scene.canvas.Canvas
+
 import scala.concurrent.duration._
 import scalafx.scene.paint.Stop.sfxStop2jfx
 import scalafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.{Group, Scene}
 import qlearning.actorSystem.Utils._
+
+import scala.collection.mutable
+import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
@@ -25,29 +31,22 @@ object App extends JFXApp {
     fill = new LinearGradient(0, 0, 1, 1, true, CycleMethod.Reflect, List(Stop(0, Color.Green), Stop(1, Color.Blue)))
   }
 
-
-  implicit val system = ActorSystem("sample-system")
-
-  // Create Main actor
-  var playerFirstPos = 0
-  var playerSecPos = 4
-  var playerThirdPos = 17
-
-
-  val playerFirst = system.actorOf(Props(new SagPlayerActor(playerFirstPos)))
-  val playerSecond = system.actorOf(Props(new SagPlayerActor(playerSecPos)))
-  val playerThird = system.actorOf(Props(new SagPlayerActor(playerThirdPos)))
-
-
   class UIActor extends Actor {
     // Request ticker to send TickCount
     var tempCounter = 0
 
+    val router = {
+      val routees = scala.collection.immutable.Vector.empty
+          AGENT_POSITION.foreach(e => {
+            val agent = context.actorOf(Props(new SagPlayerActor(e)))
+            context.watch(agent)
+            ActorRefRoutee(agent)
+            agent ! Learn
+            routees :+ agent
+      })
+    }
 
-    playerFirst ! Learn
-    playerSecond ! Learn
-    playerThird ! Learn
-
+    val AGENT_POSITION_COPY = collection.mutable.ListBuffer() ++= AGENT_POSITION
 
     def receive = {
 
@@ -57,32 +56,33 @@ object App extends JFXApp {
 
       case Moves(oldPos, moves) => {
         if(oldPos == PRIZE_POSITION)
-          system.stop(sender())
-        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => (e ._1 == boardSize*boardSize - 1 || (e._1 != playerSecPos && e._1 != playerFirstPos && e._1 != playerThirdPos)))
+          context.stop(sender())
+        val bestActions = moves.filter(_._2 == moves.map(_._2).max).filter(e => {
+          val i = AGENT_POSITION_COPY.count(pos => pos != e._1)
+          (e._1 == PRIZE_POSITION) || (if (i == AGENT_POSITION_COPY.length) true else false)
+        })
+
         if(bestActions.length != 0) {
           println("Simulation step")
           val moveToDo = bestActions(Random.nextInt(bestActions.length))
-          if(playerFirstPos == oldPos)
-            playerFirstPos = moveToDo._1
-          else if(playerSecPos == oldPos)
-            playerSecPos = moveToDo._1
-          else
-            playerThirdPos = moveToDo._1
+          AGENT_POSITION_COPY(AGENT_POSITION_COPY.indexOf(oldPos)) = moveToDo._1
           Platform.runLater(
             drawTwoCircles(oldPos%boardSize, oldPos/boardSize, moveToDo._1 % boardSize, moveToDo._1/boardSize)
           )
-          system.scheduler.scheduleOnce(2.second, sender, DoThisMove(moveToDo))
+          context.system.scheduler.scheduleOnce(2.second, sender, DoThisMove(moveToDo))
           //sender ! DoThisMove(moveToDo)
         }
         else {
           println("\n\n\n" + "Error no possibe move!!!" + "\n\n\n")
-          system.scheduler.scheduleOnce(2.second, sender, MakeMove)
+          context.system.scheduler.scheduleOnce(2.second, sender, MakeMove)
         }
       }
 
       case _ => println("I received something that I cannot interpret")
     }
   }
+
+  implicit val system = ActorSystem("sample-system")
 
   val uiactor = system.actorOf(Props(new UIActor))
 
