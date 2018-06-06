@@ -1,5 +1,3 @@
-import java.security.KeyStore.TrustedCertificateEntry
-
 import akka.actor.{Actor, ActorSystem, Props}
 import akka.routing._
 import qlearning.actorSystem.SagPlayerActor
@@ -7,24 +5,19 @@ import scalafx.application.{JFXApp, Platform}
 import scalafx.application.JFXApp.PrimaryStage
 import scalafx.beans.property.DoubleProperty.sfxDoubleProperty2jfx
 import scalafx.scene.canvas.Canvas
-
 import scala.concurrent.duration._
 import scalafx.scene.paint.Stop.sfxStop2jfx
 import scalafx.scene.paint.{Color, CycleMethod, LinearGradient, Stop}
 import scalafx.scene.shape.Rectangle
 import scalafx.scene.{Group, Scene}
 import qlearning.actorSystem.Utils._
-
-import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.util.Random
 
+
 object App extends JFXApp {
 
-
   val canvas = new Canvas(CANVAS_HEIGHT, CANVAS_WIDTH)
-
   val rect = new Rectangle {
     height = SCENE_HEIGHT
     width = SCENE_WIDTH
@@ -62,7 +55,7 @@ object App extends JFXApp {
           (e._1 == PRIZE_POSITION) || (if (i == AGENT_POSITION_COPY.length) true else false)
         })
 
-        if(bestActions.length != 0) {
+        if(bestActions.nonEmpty) {
           println("Simulation step")
           val moveToDo = bestActions(Random.nextInt(bestActions.length))
           AGENT_POSITION_COPY(AGENT_POSITION_COPY.indexOf(oldPos)) = moveToDo._1
@@ -70,7 +63,6 @@ object App extends JFXApp {
             drawTwoCircles(oldPos%boardSize, oldPos/boardSize, moveToDo._1 % boardSize, moveToDo._1/boardSize)
           )
           context.system.scheduler.scheduleOnce(2.second, sender, DoThisMove(moveToDo))
-          //sender ! DoThisMove(moveToDo)
         }
         else {
           println("\n\n\n" + "Error no possibe move!!!" + "\n\n\n")
@@ -83,11 +75,10 @@ object App extends JFXApp {
   }
 
   implicit val system = ActorSystem("sample-system")
-
   val uiactor = system.actorOf(Props(new UIActor))
-
   val rootPane = new Group
   rootPane.children = List(rect, canvas)
+
   stage = new PrimaryStage {
     title = "Systemy Agentowe - Symulacja"
     scene = new Scene(SCENE_HEIGHT, SCENE_WIDTH) {
@@ -95,12 +86,11 @@ object App extends JFXApp {
 
     }
   }
+
   stage.setOnCloseRequest(e => {
     system.terminate()
     Platform.exit()
   })
-
-
 
   canvas.translateX = (SCENE_WIDTH - CANVAS_WIDTH) / 2
   canvas.translateY = (SCENE_HEIGHT - CANVAS_HEIGHT) / 2
@@ -111,8 +101,6 @@ object App extends JFXApp {
   drawElements(CircleType("Agent"))
   drawElements(CircleType("Trap"))
   drawElements(CircleType("Prize"))
-
-  //drawSomeone(Color.Yellow, 4,4)
 
   /** Update the shape using current `start` and `end` points. */
   def drawElements(circleType: CircleType) = circleType match{

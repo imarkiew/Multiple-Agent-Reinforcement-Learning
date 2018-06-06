@@ -8,6 +8,7 @@ case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: C
 
 
   val transtitions = LegalTranstitions.generateTransitions(boardSize)
+
   def hasTransitions: Boolean = return !isWon()
 
   def makeTransition(position: Int): SagBoard = {
@@ -34,6 +35,4 @@ case class SagBoard(state: String = "c.T....T..T.......T.TT..P", playerToMove: C
     val bestActions = actionList.filter(_._2 == bestValue)
     bestActions(rnd.nextInt(bestActions.length))
   }
-
-  //  override def toString: String = state.substring(0, 5) + "\n" + state.substring(5, 10) + "\n" + state.substring(10,15) + "\n" + state.substring(15,20) + '\n' + state.substring(20)
 }

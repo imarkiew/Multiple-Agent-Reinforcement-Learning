@@ -19,12 +19,11 @@ import scala.collection.mutable
 import scala.util.Random
 import qlearning.common.QTable._
 
+
 object QTable {
 
   private val RND = new Random((Math.random() * 10000).toLong)
-
   private val DEFAULT_EPS = 0.01
-
   private val EPS_DROPOFF = 5.0f
 
 }
@@ -39,7 +38,6 @@ case class QTable[T](initialState: State[T],
 
   def getBestMove(b: State[T]): (T, Float) = {
     val actionsList = table(b).toSeq
-    //println("the possible actions are " + actionsList.mkString(", "))
     b.selectBestAction(actionsList, rnd)
   }
 

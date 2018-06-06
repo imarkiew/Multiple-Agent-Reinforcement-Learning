@@ -25,8 +25,6 @@ case class QLearner[T](learningRate: Float = DEFAULT_LEARNING_RATE,
         val nextState = state.makeTransition(action._1)
         qtable.update(state, action, nextState, learningRate, futureRewardDiscount)
         state = nextState
-        //print(state.toString + '\n')
-        //Thread.sleep(1000)
       }
     }
   }

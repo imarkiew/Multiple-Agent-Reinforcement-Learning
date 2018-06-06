@@ -1,10 +1,8 @@
 package qlearning.actorSystem
 
-
 import akka.actor.Actor
 import qlearning.actorSystem.Utils._
 import qlearning.common._
-
 
 
 class SagPlayerActor(initialState: Int) extends Actor {
@@ -14,7 +12,6 @@ class SagPlayerActor(initialState: Int) extends Actor {
   val learner = new QLearner[Int]()
   var playerPosition = initialState
   var state = SagBoard(initialStateString, 'c', playerPosition)
-
 
   def generateStringState(): String = {
     var vector = scala.collection.mutable.ArrayBuffer.empty[Char]
@@ -54,7 +51,6 @@ class SagPlayerActor(initialState: Int) extends Actor {
       else
         sender ! Moves(playerPosition, List[(Int, Float)]())
     }
-
 
     case _ => println("What the hell did I receive?")
   }
